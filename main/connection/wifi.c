@@ -8,52 +8,13 @@
 #include "esp_log.h"
 #include "nvs_flash.h"
 #include "nvs.h"
+#include "esp_netif.h"
+#include "state_manager.h"
 
 static const char *TAG = "wifi";
 
-#define DEFAULT_WIFI_SSID "Cyber-Police~"
-#define DEFAULT_WIFI_PASS "example123"
-
-static void store_wifi_credentials(const char *ssid, const char *pass) {
-    nvs_handle_t nvs_handle;
-    esp_err_t err = nvs_open("storage", NVS_READWRITE, &nvs_handle);
-    if (err != ESP_OK) {
-        ESP_LOGE(TAG, "Error (%s) opening NVS handle!", esp_err_to_name(err));
-    } else {
-        err = nvs_set_str(nvs_handle, "wifi_ssid", ssid);
-        if (err != ESP_OK) {
-            ESP_LOGE(TAG, "Error (%s) setting SSID!", esp_err_to_name(err));
-        }
-        err = nvs_set_str(nvs_handle, "wifi_pass", pass);
-        if (err != ESP_OK) {
-            ESP_LOGE(TAG, "Error (%s) setting password!", esp_err_to_name(err));
-        }
-        err = nvs_commit(nvs_handle);
-        if (err != ESP_OK) {
-            ESP_LOGE(TAG, "Error (%s) committing to NVS!", esp_err_to_name(err));
-        }
-        nvs_close(nvs_handle);
-    }
-}
-
-static esp_err_t get_wifi_credentials(char *ssid, size_t ssid_len, char *pass, size_t pass_len) {
-    nvs_handle_t nvs_handle;
-    esp_err_t err = nvs_open("storage", NVS_READONLY, &nvs_handle);
-    if (err != ESP_OK) {
-        ESP_LOGE(TAG, "Error (%s) opening NVS handle!", esp_err_to_name(err));
-        return err;
-    }
-    err = nvs_get_str(nvs_handle, "wifi_ssid", ssid, &ssid_len);
-    if (err != ESP_OK) {
-        ESP_LOGE(TAG, "Error (%s) getting SSID!", esp_err_to_name(err));
-    }
-    err = nvs_get_str(nvs_handle, "wifi_pass", pass, &pass_len);
-    if (err != ESP_OK) {
-        ESP_LOGE(TAG, "Error (%s) getting password!", esp_err_to_name(err));
-    }
-    nvs_close(nvs_handle);
-    return err;
-}
+#define DEFAULT_WIFI_SSID "Test~"
+#define DEFAULT_WIFI_PASS "12345678"
 
 static void wifi_event_handler(void* arg, esp_event_base_t event_base,
                                int32_t event_id, void* event_data) {
@@ -93,7 +54,7 @@ void wifi_init_sta(void) {
     char pass[64] = {0};
     esp_err_t err = get_wifi_credentials(ssid, sizeof(ssid), pass, sizeof(pass));
     if (err == ESP_OK && ssid[0] != '\0' && pass[0] != '\0') {
-        ESP_LOGI(TAG, "Connecting to Wi-Fi with SSID: %s", ssid);
+        ESP_LOGI(TAG, "Connecting to Wi-Fi with SSID: %s - %s", ssid, pass);
     } else {
         ESP_LOGI(TAG, "Using default Wi-Fi credentials");
         strncpy(ssid, DEFAULT_WIFI_SSID, sizeof(ssid));
@@ -116,4 +77,37 @@ void wifi_init_sta(void) {
     esp_wifi_start();
 
     ESP_LOGI(TAG, "wifi_init_sta finished.");
+}
+
+#define WIFI_SSID      "ESP32_AP"
+#define WIFI_PASS      "12345678"
+#define MAX_STA_CONN   4
+
+void wifi_init_ap(void) {
+    esp_netif_init();
+    esp_event_loop_create_default();
+    esp_netif_create_default_wifi_ap();
+    
+    wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
+    esp_wifi_init(&cfg);
+
+    wifi_config_t wifi_config = {
+        .ap = {
+            .ssid = WIFI_SSID,
+            .ssid_len = strlen(WIFI_SSID),
+            .password = WIFI_PASS,
+            .max_connection = MAX_STA_CONN,
+            .authmode = WIFI_AUTH_WPA_WPA2_PSK
+        },
+    };
+
+    if (strlen(WIFI_PASS) == 0) {
+        wifi_config.ap.authmode = WIFI_AUTH_OPEN;
+    }
+
+    esp_wifi_set_mode(WIFI_MODE_AP);
+    esp_wifi_set_config(ESP_IF_WIFI_AP, &wifi_config);
+    esp_wifi_start();
+
+    ESP_LOGI(TAG, "Wi-Fi AP started. SSID:%s password:%s", WIFI_SSID, WIFI_PASS);
 }

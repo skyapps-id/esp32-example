@@ -8,7 +8,7 @@
 #include "dht.h"
 #include "clients/mqtt_client_handler.h"
 
-#define DHT_GPIO 16
+#define DHT_GPIO GPIO_NUM_16
 
 static const char *TAG = "DHT11";
 
@@ -25,6 +25,6 @@ void sensors_task(void *pvParameter) {
         } else {
             ESP_LOGE(TAG, "Could not read data from sensor");
         }
-        vTaskDelay(2000 / portTICK_PERIOD_MS);
+        vTaskDelay(5000 / portTICK_PERIOD_MS);
     }
 }

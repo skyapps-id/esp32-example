@@ -1,6 +1,14 @@
 #include "router.h"
-#include "hello_handler.h"
-#include "goodbye_handler.h"
+#include "server/handler/hello_handler.h"
+#include "server/handler/save_config_wifi_handler.h"
+#include "server/handler/index_handler.h"
+
+static const httpd_uri_t home = {
+    .uri       = "/",
+    .method    = HTTP_GET,
+    .handler   = index_handler,
+    .user_ctx  = NULL
+};
 
 static const httpd_uri_t hello = {
     .uri       = "/hello",
@@ -9,14 +17,15 @@ static const httpd_uri_t hello = {
     .user_ctx  = NULL
 };
 
-static const httpd_uri_t goodbye = {
-    .uri       = "/goodbye",
-    .method    = HTTP_GET,
-    .handler   = goodbye_get_handler,
+static const httpd_uri_t saveConfigWifi = {
+    .uri       = "/save-config-wifi",
+    .method    = HTTP_POST,
+    .handler   = save_config_wifi_handler,
     .user_ctx  = NULL
 };
 
 void register_routes(httpd_handle_t server) {
+    httpd_register_uri_handler(server, &home);
     httpd_register_uri_handler(server, &hello);
-    httpd_register_uri_handler(server, &goodbye);
+    httpd_register_uri_handler(server, &saveConfigWifi);
 }

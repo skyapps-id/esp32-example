@@ -21,7 +21,7 @@ void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_t event
             ESP_LOGI(TAG, "MQTT_EVENT_DISCONNECTED");
             break;
         default:
-            // ESP_LOGI(TAG, "Other event id:%d", event->event_id);
+            ESP_LOGI(TAG, "Other event id:%d", event->event_id);
             break;
     }
 }
