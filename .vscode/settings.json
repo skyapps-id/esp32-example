@@ -44,6 +44,9 @@
         "random": "c",
         "limits": "c",
         "semaphore": "c",
-        "http_parser.h": "c"
+        "http_parser.h": "c",
+        "helper.h": "c",
+        "save_config_wifi_handler.h": "c",
+        "ota_handler.h": "c"
     }
 }

@@ -12,12 +12,6 @@ static const char *TAG = "save_config_wifi";
 
 const char* resp_html = "Successfully changing the configuration of Wi-Fi to {{SSID}}";
 
-void restart_task(void *pvParameter) {
-    vTaskDelay(pdMS_TO_TICKS(500));
-    esp_restart();
-    vTaskDelete(NULL);
-}
-
 esp_err_t save_config_wifi_handler(httpd_req_t *req) {
     led_on();
     ESP_LOGI(TAG, "Http Request /save-config-wifi");
@@ -62,7 +56,7 @@ esp_err_t save_config_wifi_handler(httpd_req_t *req) {
         return ESP_FAIL;
     }
 
-    httpd_resp_send(req, html_content, HTTPD_RESP_USE_STRLEN);
+    httpd_resp_send(req, html_content, strlen(html_content));
     led_off();
     xTaskCreate(restart_task, "restart_task", 2048, NULL, 5, NULL);
     return ESP_OK;

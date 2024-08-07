@@ -1,3 +1,8 @@
+#include "helper.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "esp_system.h"
+#include "esp_system.h"
 #include <string.h> 
 #include "esp_log.h"
 #include "ctype.h"
@@ -58,4 +63,10 @@ void url_decode(char *dst, const char *src) {
         }
     }
     *dst = '\0';
+}
+
+void restart_task(void *pvParameter) {
+    vTaskDelay(pdMS_TO_TICKS(500));
+    esp_restart();
+    vTaskDelete(NULL);
 }
